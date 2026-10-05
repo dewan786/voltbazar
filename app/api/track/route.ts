@@ -1,0 +1,3 @@
+import {z} from 'zod';
+import {database,json,limit,sameOrigin} from '@/lib/store';
+export async function POST(req:Request){try{if(!sameOrigin(req))return json({error:'Invalid origin'},403);await limit('track:'+String(req.headers.get('cf-connecting-ip')||'unknown'),10);const d=z.object({id:z.string().min(5).max(40),phone:z.string().min(11).max(15)}).parse(await req.json());const o=await database().prepare('SELECT id,status,payment_status,tracking,created_at,demo FROM orders WHERE id=? AND phone=?').bind(d.id.trim(),d.phone.trim()).first();return o?json(o):json({error:'No matching order found.'},404)}catch{return json({error:'Unable to find that order. Check your ID and phone number.'},400)}}

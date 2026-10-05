@@ -1,0 +1,2 @@
+import {imageBucket} from '@/lib/image-storage';
+export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){const{id}=await params;if(!/^[a-f0-9-]{36}\.(jpg|png|webp)$/.test(id))return new Response('Not found',{status:404});const file=await imageBucket.get(id);if(!file)return new Response('Not found',{status:404});return new Response(file.body,{headers:{'Content-Type':file.httpMetadata?.contentType||'image/jpeg','Cache-Control':'public,max-age=31536000,immutable','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}})}

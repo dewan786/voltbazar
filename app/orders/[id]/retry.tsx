@@ -1,0 +1,3 @@
+ 'use client';
+import {useState} from 'react';
+export default function Retry({id,orderKey}:{id:string;orderKey:string}){const[busy,setBusy]=useState(false),[error,setError]=useState('');return <><button className="dark-button" disabled={busy} onClick={async()=>{setBusy(true);try{const r=await fetch('/api/payments/retry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,key:orderKey})});const d=await r.json() as {error?:string;paymentUrl?:string;url?:string};if(!r.ok)throw new Error(d.error||'Please try again.');window.location.assign(d.paymentUrl||'/track')}catch(e){setError(e instanceof Error?e.message:'Payment unavailable');setBusy(false)}}}>{busy?'Connecting…':'Continue payment'}</button>{error&&<p role="alert">{error}</p>}</>}

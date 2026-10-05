@@ -1,0 +1,4 @@
+import {z} from 'zod';
+import {database,json,sameOrigin,limit} from '@/lib/store';
+import {sslSession} from '@/lib/payments';
+export async function POST(req:Request){try{if(!sameOrigin(req))return json({error:'Invalid origin'},403);const d=z.object({id:z.string().max(40),key:z.string().max(90)}).parse(await req.json());await limit('pay:'+d.id,5);const o=await database().prepare('SELECT * FROM orders WHERE id=? AND secret=?').bind(d.id,d.key).first<{id:string;total:number;customer:string;email:string;phone:string;address:string;city:string;payment_status:string;method:string;status:string}>();if(!o||o.method!=='sslcommerz'||o.payment_status==='paid'||o.status==='cancelled')return json({error:'Order is not eligible for payment'},400);return json({paymentUrl:await sslSession(o)})}catch(e){return json({error:e instanceof Error?e.message:'Payment unavailable'},400)}}
